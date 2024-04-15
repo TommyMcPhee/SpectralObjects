@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <fstream>
 #include <cmath>
+#include "spectrum.h"
 
 void writeToFile(std::ofstream& file, int value, int size);
 float getSample();
@@ -19,3 +20,5 @@ const int channels = 4;
 const int harmonics = 4800;
 float sample;
 float samples;
+
+spectrum spectrumA;
