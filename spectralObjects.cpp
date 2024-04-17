@@ -6,8 +6,15 @@ void writeToFile(std::ofstream& file, int value, int size) {
 
 float getSample() {
     sampleCount++;
-    return spectrumA.renderSample()[0];
-    //return noise();
+    sample = 0;
+    for (int a = 0; a < harmonics; a++) {
+        phases[a] += phaseIncrements[a];
+        phases[a] = fmod(phases[a], (float)wavetableSize);
+        partialSamples[a] = wavetable.at((int)(phases[a]));
+        sample += partialSamples[a] / (float)harmonics;
+    }
+    //std::cout << sample << std::endl;
+    return sample;
 }
 
 float noise() {
@@ -15,7 +22,7 @@ float noise() {
 }
 
 void render() {
-    samples = length * (float)sampleRate;
+    samples = length * (float)channels * (float)sampleRate;
     wavFile.open("Test.wav", std::ios::binary);
     // Header chunk
     wavFile << "RIFF";
@@ -50,9 +57,13 @@ void render() {
 
 int main()
 {
-    spectrumA = spectrum(10.0, sampleRate);
-    for (int a = 0; a < spectrumA.harmonics.size(); a++) {
-        spectrumA.harmonics.at(a) = { 1.0, 0.0, 0.0 };
+    wavetableSize = sqrt(2.0) * (float)pow(2, byteDepth * 8);
+    fundamentalIncrement = (float)wavetableSize / (float)(harmonics * 2);
+    for (int a = 0; a < wavetableSize; a++) {
+        wavetable.push_back(sin((float)a * 2.0 * M_PI / wavetableSize));
+    }
+    for (int a = 0; a < harmonics; a++) {
+        phaseIncrements[a] = (float)(a + 1) * fundamentalIncrement;
     }
     length = 3.0;
     sampleCount = 0;
