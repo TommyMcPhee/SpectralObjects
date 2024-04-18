@@ -1,12 +1,28 @@
-#include "SpectralObjects.h"
+#include "spectralObjects.h"
 
 void writeToFile(std::ofstream& file, int value, int size) {
     file.write(reinterpret_cast<const char*> (&value), size);
 }
 
-float getSample() {
-    sampleCount++;
-    return noise();
+void getSample() {
+    //sampleCount++;
+    monoSample = 0.0;
+    sample = { 0.0, 0.0, 0.0, 0.0 };
+    totalAmplitude = 0.0;
+    for (int a = 0; a < harmonics; a++) {
+        totalAmplitude += amplitudes[a];
+    }
+    for (int a = 0; a < harmonics; a++) {
+        phases[a] += noise() * jitterDepths[a] * phaseIncrements[a] + phaseIncrements[a];
+        phases[a] = fmod(phases[a], (float)wavetableSize);
+        partialSample = wavetable.at((int)(phases[a])) * amplitudes[a] / totalAmplitude;
+        monoSample += partialSample;
+        sample[0] += partialSample * sqrt(sqrt(1.0 - positions[a][0]) * sqrt(1.0 - positions[a][1]));
+        sample[1] += partialSample * sqrt(sqrt(positions[a][0]) * sqrt(1.0 - positions[a][1]));
+        sample[2] += partialSample * sqrt(sqrt(1.0 - positions[a][0]) * sqrt(positions[a][1]));
+        sample[3] += partialSample * sqrt(sqrt(positions[a][0]) * sqrt(positions[a][1]));
+    }
+    //std::cout << sample << std::endl;
 }
 
 float noise() {
@@ -34,9 +50,13 @@ void render() {
     wavFile << "----";
     preAudioP = wavFile.tellp();
     auto maxSampleInt = pow(2, byteDepth * 8 - 1) - 1;
-    sample = getSample();
-    sampleInt = static_cast<int>(sample * maxSampleInt);
-    wavFile.write(reinterpret_cast<char*> (&sampleInt), byteDepth);
+    for (int b = 0; b < samples; b++) {
+        getSample();
+        for (int a = 0; a < 4; a++) {
+            sampleInt = static_cast<int>(sample[a] * maxSampleInt);
+            wavFile.write(reinterpret_cast<char*> (&sampleInt), byteDepth);
+        }
+    }
     postAudioP = wavFile.tellp();
     wavFile.seekp(preAudioP - 4);
     writeToFile(wavFile, postAudioP - preAudioP, 4);
@@ -47,7 +67,16 @@ void render() {
 
 int main()
 {
-    length = 300.0;
+    fundamentalIncrement = (float)wavetableSize / (float)(harmonics * 2);
+    for (int a = 0; a < wavetableSize; a++) {
+        wavetable[a] = sin((float)a * 2.0 * M_PI / wavetableSize);
+    }
+    for (int a = 0; a < harmonics; a++) {
+        phaseIncrements[a] = (float)(a + 1) * fundamentalIncrement;
+        amplitudes[a] = 1.0 / (float)(a + 1);
+        jitterDepths[a] = 0.5;
+    }
+    length = 3.0;
     sampleCount = 0;
     render();
 }

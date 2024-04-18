@@ -8,10 +8,11 @@
 #include <array>
 
 void writeToFile(std::ofstream& file, int value, int size);
-float getSample();
+void getSample();
 float noise();
 void render();
 float length;
+float samples;
 int sampleCount;
 std::ofstream wavFile;
 int preAudioP;
@@ -21,19 +22,17 @@ const int sampleRate = 48000;
 const int byteDepth = 2;
 const int channels = 4;
 const int harmonics = 480;
-int wavetableSize;
+const int wavetableSize = 92682;
 float fundamentalIncrement;
-std::vector<float> wavetable;
+float totalAmplitude;
+std::array<float, wavetableSize> wavetable;
 std::array<float, harmonics> phaseIncrements;
 std::array<float, harmonics> phases;
-std::array<float, harmonics> partialSamples;
 std::array<float, harmonics> amplitudes;
 std::array<float, harmonics> jitterDepths;
-std::array<float, harmonics> jitterDeltas;
-std::array<float, harmonics> currentOffsets;
 std::array<std::array<float, 2>, harmonics> positions;
-float sample;
-float samples;
-//std::array<float, 4> sample;
-
+float partialSample;
+float monoSample;
+float monoSign;
+std::array<float, 4> sample;
 
