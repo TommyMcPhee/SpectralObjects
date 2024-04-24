@@ -25,9 +25,9 @@ void getSample() {
         float freqA = lfoA * remainingProgress;
         float freqB = lfoB * progress;
         amplitudes[a] = ampCurve * fm(partial, lfoA * remainingProgress);
-        amplitudePositions[a] = fm(partial, ampCurve * (1.0 - freqA));
-        jitter[a] = fm(partial, lfoB * progress);
-        jitterPositions[a] = fm(partial, jitterCurve * (1.0 - freqB));
+        amplitudePositions[a] = fm(partial, jitterCurve * (1.0 - freqA));
+        jitter[a] = jitterCurve * fm(partial, lfoB * progress);
+        jitterPositions[a] = fm(partial, ampCurve * (1.0 - freqB));
         totalAmplitude += amplitudes[a];
     }
     sample = { 0.0, 0.0 };
